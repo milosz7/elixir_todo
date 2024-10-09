@@ -11,6 +11,8 @@ defmodule Todo.List do
     %Todo.List{todos | next_id: todos.next_id + 1, entries: new_entries}
   end
 
+  def size(todos), do: map_size(todos.entries)
+
   def entries(todos, date) do
     todos.entries
     |> Map.values()
