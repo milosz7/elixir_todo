@@ -22,8 +22,7 @@ defmodule Todo.Cache do
         {:reply, todo_server, todo_servers}
 
       :error ->
-        cached_list = Todo.Database.get(name)
-        {:ok, new_server} = Todo.Server.start(name, cached_list)
+        {:ok, new_server} = Todo.Server.start(name)
         {:reply, new_server, Map.put(todo_servers, name, new_server)}
     end
   end
