@@ -7,7 +7,6 @@ defmodule Todo.List do
   end
 
   def add_entry(todos, entry) do
-    entry = Map.put(entry, :id, todos.next_id)
     new_entries = Map.put(todos.entries, todos.next_id, entry)
     %Todo.List{todos | next_id: todos.next_id + 1, entries: new_entries}
   end
