@@ -37,8 +37,6 @@ defmodule Todo.Database do
         _ -> nil
       end
 
-    IO.inspect(data)
-
     {:reply, data, state}
   end
 
