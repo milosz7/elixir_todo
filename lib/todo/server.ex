@@ -3,8 +3,13 @@ defmodule Todo.Server do
 
   @impl true
   def init(name) do
+    {:ok, {name, nil}, {:continue, :init}}
+  end
+
+  @impl true
+  def handle_continue(:init, {name, nil}) do
     todo_list = Todo.Database.get(name) || Todo.List.new()
-    {:ok, {name, todo_list}}
+    {:noreply, {name, todo_list}}
   end
 
   def start(name), do: GenServer.start(__MODULE__, name)
