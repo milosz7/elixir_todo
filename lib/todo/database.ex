@@ -3,44 +3,46 @@ defmodule Todo.Database do
 
   @data_folder "./data"
 
-  def start() do
-    GenServer.start(__MODULE__, nil, name: __MODULE__)
+  def start(n_workers \\ 3) do
+    GenServer.start(__MODULE__, n_workers, name: __MODULE__)
   end
 
   @impl true
-  def init(_) do
+  def init(n_workers) do
     File.mkdir_p!(@data_folder)
-    {:ok, nil}
+    {:ok, {init_workers(n_workers), n_workers}}
+  end
+
+  defp init_workers(n_workers) do
+    0..(n_workers - 1)
+    |> Enum.reduce(
+      %{},
+      fn x, acc ->
+        {:ok, pid} = Todo.DatabaseWorker.start(@data_folder)
+        Map.put(acc, x, pid)
+      end
+    )
+  end
+
+  @impl true
+  def handle_call({:choose_worker, name}, _from, {workers, n_workers}) do
+    index = :erlang.phash2(name, n_workers)
+    {:reply, Map.get(workers, index), {workers, n_workers}}
   end
 
   def store(key, data) do
-    GenServer.cast(__MODULE__, {:store, key, data})
+    key
+    |> choose_worker()
+    |> Todo.DatabaseWorker.store(key, data)
   end
 
   def get(key) do
-    GenServer.call(__MODULE__, {:get, key})
+    key
+    |> choose_worker()
+    |> Todo.DatabaseWorker.get(key)
   end
 
-  @impl true
-  def handle_cast({:store, key, data}, state) do
-    file_name(key)
-    |> File.write(:erlang.term_to_binary(data))
-
-    {:noreply, state}
-  end
-
-  @impl true
-  def handle_call({:get, key}, _from, state) do
-    data =
-      case File.read(file_name(key)) do
-        {:ok, binary} -> :erlang.binary_to_term(binary)
-        _ -> nil
-      end
-
-    {:reply, data, state}
-  end
-
-  defp file_name(key) do
-    Path.join([@data_folder, key])
+  def choose_worker(name) do
+    GenServer.call(__MODULE__, {:choose_worker, name})
   end
 end
