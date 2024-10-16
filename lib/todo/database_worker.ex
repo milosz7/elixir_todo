@@ -15,6 +15,7 @@ defmodule Todo.DatabaseWorker do
 
   @impl true
   def init(data_path) do
+    IO.puts("Starting worker process")
     {:ok, data_path}
   end
 

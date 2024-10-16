@@ -1,18 +1,19 @@
 defmodule Todo.Cache do
   use GenServer
 
-  def start() do
-    GenServer.start(__MODULE__, nil)
+  def start_link(_) do
+    GenServer.start_link(__MODULE__, nil, name: __MODULE__)
   end
 
   @impl true
   def init(_) do
+    IO.puts("Starting Cache server")
     Todo.Database.start()
     {:ok, %{}}
   end
 
-  def server_process(cache_pid, name) do
-    GenServer.call(cache_pid, {:server_process, name})
+  def server_process(name) do
+    GenServer.call(__MODULE__, {:server_process, name})
   end
 
   @impl true
