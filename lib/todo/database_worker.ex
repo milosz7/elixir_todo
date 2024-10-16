@@ -1,16 +1,28 @@
 defmodule Todo.DatabaseWorker do
   use GenServer
 
-  def start_link(data_path) do
-    GenServer.start_link(__MODULE__, data_path)
+  def start_link({data_path, worker_id}) do
+    GenServer.start_link(
+      __MODULE__,
+      data_path,
+      name: via_tuple(worker_id)
+    )
   end
 
-  def get(pid, key) do
-    GenServer.call(pid, {:get, key})
+  def get(worker_id, key) do
+    worker_id
+    |> via_tuple()
+    |> GenServer.call({:get, key})
   end
 
-  def store(pid, key, data) do
-    GenServer.cast(pid, {:store, key, data})
+  def store(worker_id, key, data) do
+    worker_id
+    |> via_tuple()
+    |> GenServer.cast({:store, key, data})
+  end
+
+  defp via_tuple(worker_id) do
+    Todo.ProcessRegistry.via_tuple({__MODULE__, worker_id})
   end
 
   @impl true

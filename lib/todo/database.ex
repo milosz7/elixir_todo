@@ -1,39 +1,35 @@
 defmodule Todo.Database do
-  use GenServer
-
   @data_folder "./data"
+  @n_workers 3
 
-  def start_link(n_workers) do
-    GenServer.start_link(__MODULE__, n_workers, name: __MODULE__)
-  end
-
-  @impl true
-  def init(n_workers) do
-    IO.puts("Starting Database server (#{n_workers} workers)")
-    {:ok, n_workers, {:continue, :init}}
-  end
-
-  @impl true
-  def handle_continue(:init, n_workers) do
+  def start_link() do
     File.mkdir_p!(@data_folder)
-    {:noreply, {init_workers(n_workers), n_workers}}
+    children = init_workers()
+    Supervisor.start_link(children, strategy: :one_for_one)
   end
 
-  defp init_workers(n_workers) do
-    0..(n_workers - 1)
+  def child_spec(_) do
+    %{
+      id: __MODULE__,
+      start: {__MODULE__, :start_link, []},
+      type: :supervisor
+    }
+  end
+
+  defp init_workers() do
+    0..(@n_workers - 1)
     |> Enum.reduce(
-      %{},
-      fn x, acc ->
-        {:ok, pid} = Todo.DatabaseWorker.start_link(@data_folder)
-        Map.put(acc, x, pid)
+      [],
+      fn id, children ->
+        worker_spec = {Todo.DatabaseWorker, :start_link, [{@data_folder, id}]}
+        child = %{id: id, start: worker_spec}
+        [child | children]
       end
     )
   end
 
-  @impl true
-  def handle_call({:choose_worker, name}, _from, {workers, n_workers}) do
-    index = :erlang.phash2(name, n_workers)
-    {:reply, Map.get(workers, index), {workers, n_workers}}
+  defp choose_worker(key) do
+    :erlang.phash2(key, @n_workers)
   end
 
   def store(key, data) do
@@ -46,9 +42,5 @@ defmodule Todo.Database do
     key
     |> choose_worker()
     |> Todo.DatabaseWorker.get(key)
-  end
-
-  def choose_worker(name) do
-    GenServer.call(__MODULE__, {:choose_worker, name})
   end
 end
