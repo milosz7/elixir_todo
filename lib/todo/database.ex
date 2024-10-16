@@ -3,7 +3,7 @@ defmodule Todo.Database do
 
   @data_folder "./data"
 
-  def start_link(n_workers \\ 3) do
+  def start_link(n_workers) do
     GenServer.start_link(__MODULE__, n_workers, name: __MODULE__)
   end
 

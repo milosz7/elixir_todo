@@ -8,7 +8,6 @@ defmodule Todo.Cache do
   @impl true
   def init(_) do
     IO.puts("Starting Cache server")
-    Todo.Database.start_link()
     {:ok, %{}}
   end
 
