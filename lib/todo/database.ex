@@ -3,8 +3,8 @@ defmodule Todo.Database do
 
   @data_folder "./data"
 
-  def start(n_workers \\ 3) do
-    GenServer.start(__MODULE__, n_workers, name: __MODULE__)
+  def start_link(n_workers \\ 3) do
+    GenServer.start_link(__MODULE__, n_workers, name: __MODULE__)
   end
 
   @impl true
@@ -19,7 +19,7 @@ defmodule Todo.Database do
     |> Enum.reduce(
       %{},
       fn x, acc ->
-        {:ok, pid} = Todo.DatabaseWorker.start(@data_folder)
+        {:ok, pid} = Todo.DatabaseWorker.start_link(@data_folder)
         Map.put(acc, x, pid)
       end
     )

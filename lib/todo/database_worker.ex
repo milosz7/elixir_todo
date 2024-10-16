@@ -1,8 +1,8 @@
 defmodule Todo.DatabaseWorker do
   use GenServer
 
-  def start(data_path) do
-    GenServer.start(__MODULE__, data_path)
+  def start_link(data_path) do
+    GenServer.start_link(__MODULE__, data_path)
   end
 
   def get(pid, key) do

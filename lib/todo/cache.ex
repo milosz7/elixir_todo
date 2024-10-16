@@ -8,7 +8,7 @@ defmodule Todo.Cache do
   @impl true
   def init(_) do
     IO.puts("Starting Cache server")
-    Todo.Database.start()
+    Todo.Database.start_link()
     {:ok, %{}}
   end
 
@@ -23,7 +23,7 @@ defmodule Todo.Cache do
         {:reply, todo_server, todo_servers}
 
       :error ->
-        {:ok, new_server} = Todo.Server.start(name)
+        {:ok, new_server} = Todo.Server.start_link(name)
         {:reply, new_server, Map.put(todo_servers, name, new_server)}
     end
   end

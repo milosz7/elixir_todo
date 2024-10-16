@@ -12,7 +12,7 @@ defmodule Todo.Server do
     {:noreply, {name, todo_list}}
   end
 
-  def start(name), do: GenServer.start(__MODULE__, name)
+  def start_link(name), do: GenServer.start_link(__MODULE__, name)
 
   def add_entry(pid, entry) do
     GenServer.cast(pid, {:add_entry, entry})
