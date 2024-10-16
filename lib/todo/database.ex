@@ -10,8 +10,13 @@ defmodule Todo.Database do
   @impl true
   def init(n_workers) do
     IO.puts("Starting Database server (#{n_workers} workers)")
+    {:ok, n_workers, {:continue, :init}}
+  end
+
+  @impl true
+  def handle_continue(:init, n_workers) do
     File.mkdir_p!(@data_folder)
-    {:ok, {init_workers(n_workers), n_workers}}
+    {:noreply, {init_workers(n_workers), n_workers}}
   end
 
   defp init_workers(n_workers) do
